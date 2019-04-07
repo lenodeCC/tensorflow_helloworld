@@ -14,9 +14,9 @@ numHiddenUnits = 50  # 隐藏层输出数据个数，即所谓的神经元个数
 trainingIterations = 10000  # 训练次数
 batchSize = 100  # 一次读取数量，根据内存或显存大小决定,一般>=64
 
-# 输入参数，其大小为：输入大小*batch大小
+# 输入参数，其大小为：输入大小*随意大小
 x = tf.placeholder(tf.float32, shape=[None, inputSize])
-# 获得结果，其大小为：类目*batch大小
+# 获得结果，其大小为：类目*随意大小
 y = tf.placeholder(tf.float32, shape=[None, numClass])
 
 # 参数初始化
