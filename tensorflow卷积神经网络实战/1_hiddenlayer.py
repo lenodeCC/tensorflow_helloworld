@@ -1,4 +1,4 @@
-# 逻辑回归(手写字内容识别)
+# 隐藏层(手写字内容识别)
 
 import numpy as np
 import tensorflow as tf
@@ -10,31 +10,41 @@ mnist = input_data.read_data_sets('../data', one_hot=True)
 
 numClass = 10  # 训练类目
 inputSize = 784  # 输入图像 28*28=784
-trainingIterations = 50000  # 训练次数
-batchSize = 64  # 一次读取数量，根据内存或显存大小决定,一般>=64
+numHiddenUnits = 50  # 隐藏层输出数据个数，即所谓的神经元个数
+trainingIterations = 10000  # 训练次数
+batchSize = 100  # 一次读取数量，根据内存或显存大小决定,一般>=64
 
-# 输入参数，其大小为：输入大小*随意大小
+# 输入参数，其大小为：输入大小*batch大小
 x = tf.placeholder(tf.float32, shape=[None, inputSize])
-# 获得结果，其大小为：类目*随意大小
+# 获得结果，其大小为：类目*batch大小
 y = tf.placeholder(tf.float32, shape=[None, numClass])
 
-# 权重参数，类目*输入大小
-W1 = tf.Variable(tf.random_normal([inputSize, numClass], stddev=0.1))
+# 参数初始化
+# 第一层权重参数，神经元个数*输入大小
+W1 = tf.Variable(tf.random_normal([inputSize, numHiddenUnits], stddev=0.1))
+B1 = tf.Variable(tf.constant(0.1), [numHiddenUnits])
 
-#
-B1 = tf.Variable(tf.constant(0.1), [numClass])
+# 输出层权重参数，类目*神经元个数
+W2 = tf.Variable(tf.random_normal([numHiddenUnits, numClass], stddev=0.1))
+B2 = tf.Variable(tf.constant(0.1), [numClass])
 
-# 预测值
-y_pred = tf.nn.softmax(tf.matmul(x, W1)+B1)
+# 网络结构
+# 隐藏层输出 relu(W1*x+B1)
+hiddenLayerOutput = tf.matmul(x, W1)+B1
+hiddenLayerOutput = tf.nn.relu(hiddenLayerOutput)
+# 最终层输出
+finalOutput = tf.matmul(hiddenLayerOutput, W2) + B2
+finalOutput = tf.nn.relu(finalOutput)
 
-# 计算损失 方差公式
-loss = tf.reduce_mean(tf.square(y-y_pred))
+# 计算损失 交叉商损失
+loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+    labels=y, logits=finalOutput))
 
 # 梯度下降
-opt = tf.train.GradientDescentOptimizer(.05).minimize(loss)
+opt = tf.train.GradientDescentOptimizer(.1).minimize(loss)
 
 # 是否正确预测
-correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y, 1))
+correct_prediction = tf.equal(tf.argmax(finalOutput, 1), tf.argmax(y, 1))
 
 # 计算准确度 tf.cast用于将预测结果（bool）转换为float类型
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
